@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+
+	<vm:config
+		name="VM_Config"
+		doc:name="VM Config">
+		<vm:queues>
+			<vm:queue queueName="VM" />
+		</vm:queues>
+	</vm:config>
+	<http:request-config
+		name="HTTP_Request_configuration"
+		doc:name="HTTP Request configuration">
+		<http:request-connection
+			host="0.0.0.0"
+			port="8081" />
+	</http:request-config>
+	<flow name="using-vm-queue.queueRequests">
+		<scheduler doc:name="Scheduler">
+			<scheduling-strategy>
+				<fixed-frequency />
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="payload">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"examplePayload":"exampleMessage"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<vm:publish
+			queueName="VM"
+			doc:name="Publish"
+			config-ref="VM_Config" />
+	</flow>
+	<flow name="using-vm-queue.jobExecutor">
+		<scheduler doc:name="Scheduler">
+			<scheduling-strategy>
+				<fixed-frequency
+					frequency="5"
+					timeUnit="SECONDS" />
+			</scheduling-strategy>
+		</scheduler>
+		<vm:consume
+			queueName="VM"
+			doc:name="Consume"
+			config-ref="VM_Config" />
+		<http:request
+			method="POST"
+			doc:name="Request"
+			config-ref="HTTP_Request_configuration"
+			path="/" />
+	</flow>
+
+
+</mule>
