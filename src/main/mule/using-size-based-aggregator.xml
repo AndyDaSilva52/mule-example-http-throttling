@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule
+	xmlns:aggregators="http://www.mulesoft.org/schema/mule/aggregators"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/mule/aggregators/current/mule-aggregators.xsd">
+
+	<flow name="using-size-based-aggregator.trigger">
+		<scheduler doc:name="Scheduler">
+			<scheduling-strategy>
+				<fixed-frequency
+					frequency="30"
+					startDelay="20"
+					timeUnit="SECONDS" />
+			</scheduling-strategy>
+		</scheduler>
+		<logger
+			level="INFO"
+			doc:name="Process Started"
+			message="##################Process Started##################" />
+		<set-payload
+			value="#[1 to 10]"
+			doc:name="1 to 10" />
+		<foreach
+			doc:name="For Each"
+			collection="#[payload]">
+			<flow-ref
+				doc:name="Flow Reference"
+				name="using-size-based-aggregator.process-and-wait" />
+		</foreach>
+		<logger
+			level="INFO"
+			doc:name="Full Execution Complete"
+			message="##################Full Execution Complete ##################" />
+
+	</flow>
+	<flow name="using-size-based-aggregator.process-and-wait">
+		<aggregators:size-based-aggregator
+			doc:name="Size based aggregator"
+			name="limitToTwo"
+			maxSize="2">
+			<aggregators:incremental-aggregation>
+				<logger
+					level="INFO"
+					message="Aggregating......"
+					doc:name="Aggregating......" />
+			</aggregators:incremental-aggregation>
+			<aggregators:aggregation-complete>
+				<foreach doc:name="For Each">
+					<logger
+						level="INFO"
+						doc:name="payload"
+						message="#[payload]" />
+				</foreach>
+			</aggregators:aggregation-complete>
+		</aggregators:size-based-aggregator>
+		<ee:transform doc:name="wait">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::Runtime
+output application/json
+---
+{ "waitTime" : 1 } wait 1000]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger
+			level="INFO"
+			doc:name="Partial Step Completed After 1s Wait"
+			message="################## Partial Step Completed After 1s Wait ##################" />
+	</flow>
+
+</mule>
