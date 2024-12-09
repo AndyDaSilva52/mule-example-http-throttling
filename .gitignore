@@ -2,6 +2,11 @@
 # Created by https://www.toptal.com/developers/gitignore/api/windows,visualstudiocode,java,maven,mule
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,visualstudiocode,java,maven,mule
 
+# Anypoint Code Builder (ACB) / vscode
+.tooling-project
+# Einstein For Developers - vscode
+.sfdx
+
 ### Java ###
 # Compiled class file
 *.class
