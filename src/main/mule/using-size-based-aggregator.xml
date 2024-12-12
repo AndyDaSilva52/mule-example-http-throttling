@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
 	xmlns:aggregators="http://www.mulesoft.org/schema/mule/aggregators"
 	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/mule/aggregators/current/mule-aggregators.xsd">
 
@@ -59,7 +61,17 @@ http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/m
 				</foreach>
 			</aggregators:aggregation-complete>
 		</aggregators:size-based-aggregator>
-		<ee:transform doc:name="wait">
+		<scripting:execute
+			engine="Groovy"
+			doc:name="Thread.sleep">
+			<scripting:code><![CDATA[try {
+    Thread.sleep(timeInMilliseconds);
+} catch (InterruptedException e) {}]]></scripting:code>
+			<scripting:parameters><![CDATA[#[{
+	timeInMilliseconds: 1000 as Number
+}]]]></scripting:parameters>
+		</scripting:execute>
+		<ee:transform doc:name="wait - avoid this method, because it blocks the thread">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 import * from dw::Runtime
