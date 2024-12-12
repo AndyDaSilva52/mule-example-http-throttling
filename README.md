@@ -1,4 +1,4 @@
-# mule-example-http-throttling
+# Mule Example HTTP Throttling
 
 Example of HTTP Throttling
 
